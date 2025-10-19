@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: eventshuffle-db
+    restart: always
+    environment:
+      POSTGRES_DB: eventshuffle
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U user -d eventshuffle']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    container_name: eventshuffle-api
+    build: .
+    restart: always
+    ports:
+      - '8000:8000'
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: eventshuffle
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
