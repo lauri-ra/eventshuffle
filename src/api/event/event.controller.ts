@@ -1,10 +1,5 @@
 import { Context } from '@hono/hono';
 import * as eventService from './event.service.ts';
-import {
-  InsertEvent,
-  InsertEventDates,
-  InsertEventDatesInput,
-} from '../../../db/schema.ts';
 
 export async function listEvents(c: Context) {
   try {

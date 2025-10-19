@@ -4,8 +4,6 @@ import {
   eventDates,
   eventVotes,
   events,
-  InsertEventDates,
-  InsertEventDatesInput,
   InsertEventInput,
 } from '../../../db/schema.ts';
 
@@ -20,44 +18,66 @@ export async function createEvent(event: InsertEventInput, dates: string[]) {
       .values({ name: event.name })
       .returning({ id: events.id });
 
-    for (const d of dates) {
-      const input: InsertEventDates = {
-        eventId: Number(id),
-        date: d,
-      };
-      await tx.insert(eventDates).values(input);
+    const datesToInsert = dates.map((d) => ({
+      eventId: Number(id),
+      date: d,
+    }));
+
+    if (datesToInsert.length > 0) {
+      await tx.insert(eventDates).values(datesToInsert);
     }
+
     return { id };
   });
 }
 
 export async function getEventById(queryId: number) {
   return await db.transaction(async (tx) => {
-    // Get the actual event and all dates associated with it.
-    const event = await tx.select().from(events).where(eq(events.id, queryId));
+    // Get the actual event
+    const eventResult = await tx
+      .select()
+      .from(events)
+      .where(eq(events.id, queryId));
+    if (eventResult.length === 0) {
+      throw new Error(`Event with id ${queryId} not found.`);
+    }
+    const event = eventResult[0];
+
+    // Get all dates associated with the event
     const dates = await tx
       .select()
       .from(eventDates)
       .where(eq(eventDates.eventId, queryId));
 
-    // Go through each event date & get people who voted for it.
-    const datesWithVotes = await Promise.all(
-      dates.map(async (date) => {
-        // Find event votes that match the date id.
-        const votes = await tx
-          .select()
-          .from(eventVotes)
-          .where(eq(eventVotes.eventDateId, date.id));
+    const dateIds = dates.map((d) => d.id);
 
-        const people = votes.map((vote) => vote.personName);
+    // Get all votes for the dates
+    const allVotes = await tx
+      .select()
+      .from(eventVotes)
+      .where(inArray(eventVotes.eventDateId, dateIds));
 
-        return { date: date.date, people };
-      }),
+    // Group the votes by event date id
+    const votesByDateId = allVotes.reduce<Record<number, string[]>>(
+      (acc, vote) => {
+        if (!acc[vote.eventDateId]) {
+          acc[vote.eventDateId] = [];
+        }
+        acc[vote.eventDateId].push(vote.personName);
+        return acc;
+      },
+      {},
     );
 
+    // Map the votes for the response result.
+    const datesWithVotes = dates.map((date) => {
+      const people = votesByDateId[date.id] || [];
+      return { date: date.date, people };
+    });
+
     return {
-      id: event[0].id,
-      name: event[0].name,
+      id: event.id,
+      name: event.name,
       dates: dates.map((d) => d.date),
       votes: datesWithVotes.filter((v) => v.people.length > 0),
     };
@@ -71,10 +91,14 @@ export async function voteEvent(
 ) {
   return await db.transaction(async (tx) => {
     // Check if event exists.
-    const event = await tx.select().from(events).where(eq(events.id, eventId));
-    if (!event) {
+    const eventResult = await tx
+      .select()
+      .from(events)
+      .where(eq(events.id, eventId));
+    if (eventResult.length === 0) {
       throw new Error(`No event with ${eventId} exists!`);
     }
+    const event = eventResult[0];
 
     // Find eventDates that match the provided votes.
     const availableEventDates = await tx
@@ -83,6 +107,7 @@ export async function voteEvent(
       .where(eq(eventDates.eventId, eventId));
 
     // For each voted date, find a matching eventDate and insert vote.
+    const votesToInsert = [];
     for (const votedDate of votes) {
       const matchingEventDate = availableEventDates.find(
         (d) => d.date === votedDate,
@@ -90,36 +115,47 @@ export async function voteEvent(
 
       if (!matchingEventDate) {
         // If no matching date exists, log an error and move onto the next.
-        console.error(`Date ${votedDate} not found for this event!`);
+        console.warn(`Date ${votedDate} not found for this event!`);
         continue;
       }
 
       // Register a vote, by inserting person and the matching event id.
-      // Ignore the vote if its a duplicate by the same person.
-      await tx
-        .insert(eventVotes)
-        .values({ eventDateId: matchingEventDate.id, personName: name })
-        .onConflictDoNothing();
+      votesToInsert.push({
+        eventDateId: matchingEventDate.id,
+        personName: name,
+      });
     }
 
-    // Get all votes to return complete response
-    const allVotes = await Promise.all(
-      availableEventDates.map(async (date) => {
-        const votesForDate = await tx
-          .select()
-          .from(eventVotes)
-          .where(eq(eventVotes.eventDateId, date.id));
+    // Insert votes, onConflictDoNothing takes care of handling duplicate votes.
+    await tx.insert(eventVotes).values(votesToInsert).onConflictDoNothing();
 
-        return {
-          date: date.date,
-          people: votesForDate.map((v) => v.personName),
-        };
-      }),
+    // Get all votes that match the available dates of the event.
+    const dateIds = availableEventDates.map((d) => d.id);
+    const allVotesForEvent = await tx
+      .select()
+      .from(eventVotes)
+      .where(inArray(eventVotes.eventDateId, dateIds));
+
+    // Group event votes by event id.
+    const votesByDateId = allVotesForEvent.reduce<Record<number, string[]>>(
+      (acc, vote) => {
+        if (!acc[vote.eventDateId]) {
+          acc[vote.eventDateId] = [];
+        }
+        acc[vote.eventDateId].push(vote.personName);
+        return acc;
+      },
+      {},
     );
 
+    const allVotes = availableEventDates.map((date) => ({
+      date: date.date,
+      people: votesByDateId[date.id] || [],
+    }));
+
     return {
-      id: event[0].id,
-      name: event[0].name,
+      id: event.id,
+      name: event.name,
       dates: availableEventDates.map((d) => d.date),
       votes: allVotes.filter((v) => v.people.length > 0),
     };
