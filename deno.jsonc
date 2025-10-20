@@ -3,8 +3,7 @@
     "start": "deno run --allow-read --allow-net --allow-write --allow-env --node-modules-dir=auto src/main.ts",
     "lint": "deno lint",
     "db:migrate": "deno -A --node-modules-dir npm:drizzle-kit generate",
-    "drizzle:generate": "deno run --allow-net --allow-env --allow-read --allow-write npm:drizzle-kit generate",
-    "drizzle:migrate": "deno run --allow-net --allow-env --allow-read src/migrate.ts"
+    "db:seed": "deno run --allow-net --allow-env --allow-read db/seed.ts"
   },
   "imports": {
     "@hono/hono": "jsr:@hono/hono@^4.10.1",
