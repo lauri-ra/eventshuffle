@@ -4,7 +4,6 @@
 
 - [Quick Start](#quick-start)
 - [Running local manually](#running-local-manually)
-  - [Requirements](#requirements)
   - [Setup](#setup)
 - [Project Structure](#project-structure)
 - [Tech Stack](#tech-stack)
@@ -20,16 +19,21 @@
 
 The fastest way to get up and running:
 
+**NOTE**: Make sure you have Docker and Docker-Compose installed
+
 ```bash
 # Clone the repository
 git clone git@github.com:lauri-ra/eventshuffle.git
 cd eventshuffle
 
-# Optional: seed the database with mock data
-docker exec eventshuffle-api deno run --allow-net --allow-env --allow-read db/seed.ts
+# Copy the example credentials
+cp .env.example .env
 
 # Start the application
 docker-compose up --build
+
+# Optional: seed the database with mock data
+docker exec eventshuffle-api deno run --allow-net --allow-env --allow-read db/seed.ts
 ```
 
 The API will be available at `http://localhost:8000`
