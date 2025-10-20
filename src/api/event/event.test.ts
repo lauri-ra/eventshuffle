@@ -150,7 +150,7 @@ Deno.test('event.service.ts', async (t) => {
         await assertRejects(
           () => eventService.voteEvent(eventId, personName, votes),
           Error,
-          `Person: ${personName} has already voted for this event`,
+          `Person: ${personName} has already voted for the following dates: 2025-10-21`,
         );
       } finally {
         txMock.restore();
@@ -340,7 +340,7 @@ Deno.test('event.service.ts', async (t) => {
         await assertRejects(
           () => eventService.getEventResults(999),
           Error,
-          'No event with 999 exists!',
+          'No event with id 999 exists!',
         );
       } finally {
         txMock.restore();
