@@ -116,9 +116,10 @@ export async function voteEvent(
       );
 
       if (!matchingEventDate) {
-        // If no matching date exists, log an error and move onto the next.
-        logger.warn(`Date ${votedDate} not found for this event!`);
-        continue;
+        // If no matching date exists, throw an error
+        throw new NotFoundError(
+          `Date ${votedDate} is not available for this event`,
+        );
       }
 
       // Register a vote, by inserting person and the matching event id.
@@ -128,7 +129,12 @@ export async function voteEvent(
       });
     }
 
-    // Check for existing votes to detect duplicates
+    // Check if votesToInsert is empty, meaning all dates were invalid
+    if (votesToInsert.length === 0) {
+      throw new NotFoundError('No valid dates provided for voting');
+    }
+
+    // Check for existing votes to detect duplicates for the same date
     const votedDateIds = votesToInsert.map((v) => v.eventDateId);
     const existingVotes = await tx
       .select()
@@ -141,9 +147,21 @@ export async function voteEvent(
       );
 
     if (existingVotes.length > 0) {
-      logger.warn(`Duplicate vote detected for person: ${name}`);
+      const duplicateDates = existingVotes.map((v) => {
+        const dateInfo = availableEventDates.find(
+          (d) => d.id === v.eventDateId,
+        );
+        return dateInfo?.date;
+      });
+      logger.warn(
+        `Duplicate vote detected for person: ${name} on dates: ${duplicateDates.join(
+          ', ',
+        )}`,
+      );
       throw new ConflictError(
-        `Person: ${name} has already voted for this event`,
+        `Person: ${name} has already voted for the following dates: ${duplicateDates.join(
+          ', ',
+        )}`,
       );
     }
 
@@ -191,7 +209,7 @@ export async function getEventResults(eventId: number) {
       .where(eq(events.id, eventId));
 
     if (eventResult.length === 0) {
-      throw new NotFoundError(`No event with ${eventId} exists!`);
+      throw new NotFoundError(`No event with id ${eventId} exists!`);
     }
     const event = eventResult[0];
 
