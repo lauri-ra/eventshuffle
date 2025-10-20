@@ -10,6 +10,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: user
+          POSTGRES_DB: eventshuffle
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -24,3 +37,10 @@ jobs:
 
       - name: Run tests
         run: deno task test
+        env:
+          DB_HOST: postgres 
+          DB_PORT: 5432 
+          DB_USER: user
+          DB_NAME: eventshuffle
+          DB_PASSWORD: password
+          NODE_ENV: test
