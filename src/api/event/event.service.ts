@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and } from 'drizzle-orm';
 import { db } from '../../../db/db.ts';
 import {
   eventDates,
@@ -8,7 +8,7 @@ import {
 } from '../../../db/schema.ts';
 
 export async function getAllEvents() {
-  return await db.select().from(events);
+  return await db.select({ id: events.id, name: events.name }).from(events);
 }
 
 export async function createEvent(event: InsertEventInput, dates: string[]) {
@@ -126,8 +126,24 @@ export async function voteEvent(
       });
     }
 
-    // Insert votes, onConflictDoNothing takes care of handling duplicate votes.
-    await tx.insert(eventVotes).values(votesToInsert).onConflictDoNothing();
+    // Check for existing votes to detect duplicates
+    const votedDateIds = votesToInsert.map((v) => v.eventDateId);
+    const existingVotes = await tx
+      .select()
+      .from(eventVotes)
+      .where(
+        and(
+          eq(eventVotes.personName, name),
+          inArray(eventVotes.eventDateId, votedDateIds),
+        ),
+      );
+
+    if (existingVotes.length > 0) {
+      console.warn(`Duplicate vote detected for person: ${name}`);
+      throw new Error(`Person ${name} has already voted for this event`);
+    }
+
+    await tx.insert(eventVotes).values(votesToInsert);
 
     // Get all votes that match the available dates of the event.
     const dateIds = availableEventDates.map((d) => d.id);

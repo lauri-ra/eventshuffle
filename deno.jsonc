@@ -8,13 +8,15 @@
   },
   "imports": {
     "@hono/hono": "jsr:@hono/hono@^4.10.1",
+    "@hono/zod-validator": "jsr:@hono/zod-validator@^0.7.4",
     "@std/assert": "jsr:@std/assert@^1",
     "@std/dotenv": "jsr:@std/dotenv@^0.225",
     "@types/pg": "npm:@types/pg@^8.15.5",
     "drizzle-kit": "npm:drizzle-kit@^0.31.5",
     "drizzle-orm": "npm:drizzle-orm@^0.44.6",
     "pg": "npm:pg@^8.16.3",
-    "dotenv": "npm:dotenv"
+    "dotenv": "npm:dotenv",
+    "zod": "npm:zod@^4.1.12"
   },
   "nodeModulesDir": "auto"
 }

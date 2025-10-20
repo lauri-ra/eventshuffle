@@ -3,6 +3,8 @@
   "specifiers": {
     "jsr:@hono/hono@*": "4.10.1",
     "jsr:@hono/hono@^4.10.1": "4.10.1",
+    "jsr:@hono/hono@^4.8.3": "4.10.1",
+    "jsr:@hono/zod-validator@~0.7.4": "0.7.4",
     "jsr:@std/assert@*": "1.0.15",
     "jsr:@std/assert@1": "1.0.15",
     "jsr:@std/dotenv@0.225": "0.225.5",
@@ -13,11 +15,18 @@
     "npm:drizzle-kit@*": "0.31.5_esbuild@0.25.11",
     "npm:drizzle-kit@~0.31.5": "0.31.5_esbuild@0.25.11",
     "npm:drizzle-orm@~0.44.6": "0.44.6_@types+pg@8.15.5_pg@8.16.3",
-    "npm:pg@^8.16.3": "8.16.3"
+    "npm:pg@^8.16.3": "8.16.3",
+    "npm:zod@^4.1.12": "4.1.12"
   },
   "jsr": {
     "@hono/hono@4.10.1": {
       "integrity": "cea3f17677afcd84a654cd1633c136e6bb2220bfa512fdac56614bb97c39fdbf"
+    },
+    "@hono/zod-validator@0.7.4": {
+      "integrity": "aa09fe265989840d4ab88d6c393a5e2141920a536b8b75c39c6f36ddb344fed1",
+      "dependencies": [
+        "jsr:@hono/hono@^4.8.3"
+      ]
     },
     "@std/assert@1.0.15": {
       "integrity": "d64018e951dbdfab9777335ecdb000c0b4e3df036984083be219ce5941e4703b",
@@ -500,18 +509,23 @@
     },
     "xtend@4.0.2": {
       "integrity": "sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ=="
+    },
+    "zod@4.1.12": {
+      "integrity": "sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ=="
     }
   },
   "workspace": {
     "dependencies": [
       "jsr:@hono/hono@^4.10.1",
+      "jsr:@hono/zod-validator@~0.7.4",
       "jsr:@std/assert@1",
       "jsr:@std/dotenv@0.225",
       "npm:@types/pg@^8.15.5",
       "npm:dotenv@*",
       "npm:drizzle-kit@~0.31.5",
       "npm:drizzle-orm@~0.44.6",
-      "npm:pg@^8.16.3"
+      "npm:pg@^8.16.3",
+      "npm:zod@^4.1.12"
     ]
   }
 }
