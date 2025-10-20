@@ -6,6 +6,8 @@ import {
   events,
   InsertEventInput,
 } from '../../../db/schema.ts';
+import { NotFoundError, ConflictError } from '../../common/errors.ts';
+import { logger } from '../../common/logger.ts';
 
 export async function getAllEvents() {
   return await db.select({ id: events.id, name: events.name }).from(events);
@@ -39,7 +41,7 @@ export async function getEventById(queryId: number) {
       .from(events)
       .where(eq(events.id, queryId));
     if (eventResult.length === 0) {
-      throw new Error(`Event with id ${queryId} not found.`);
+      throw new NotFoundError(`Event with id ${queryId} not found.`);
     }
     const event = eventResult[0];
 
@@ -96,7 +98,7 @@ export async function voteEvent(
       .from(events)
       .where(eq(events.id, eventId));
     if (eventResult.length === 0) {
-      throw new Error(`No event with ${eventId} exists!`);
+      throw new NotFoundError(`No event with ${eventId} exists!`);
     }
     const event = eventResult[0];
 
@@ -115,7 +117,7 @@ export async function voteEvent(
 
       if (!matchingEventDate) {
         // If no matching date exists, log an error and move onto the next.
-        console.warn(`Date ${votedDate} not found for this event!`);
+        logger.warn(`Date ${votedDate} not found for this event!`);
         continue;
       }
 
@@ -139,8 +141,10 @@ export async function voteEvent(
       );
 
     if (existingVotes.length > 0) {
-      console.warn(`Duplicate vote detected for person: ${name}`);
-      throw new Error(`Person ${name} has already voted for this event`);
+      logger.warn(`Duplicate vote detected for person: ${name}`);
+      throw new ConflictError(
+        `Person: ${name} has already voted for this event`,
+      );
     }
 
     await tx.insert(eventVotes).values(votesToInsert);
@@ -187,7 +191,7 @@ export async function getEventResults(eventId: number) {
       .where(eq(events.id, eventId));
 
     if (eventResult.length === 0) {
-      throw new Error(`No event with ${eventId} exists!`);
+      throw new NotFoundError(`No event with ${eventId} exists!`);
     }
     const event = eventResult[0];
 

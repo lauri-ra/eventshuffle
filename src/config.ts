@@ -21,4 +21,5 @@ export const DB_CONFIG = {
 // Application configuration
 export const APP_CONFIG = {
   port: Number(Deno.env.get('PORT')) || 8000,
+  nodeEnv: Deno.env.get('NODE_ENV') || 'development',
 };

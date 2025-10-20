@@ -23,12 +23,10 @@ services:
     restart: always
     ports:
       - '8000:8000'
+    env_file:
+      - .env
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: user
-      DB_PASSWORD: password
-      DB_NAME: eventshuffle
+      DB_HOST: db # override for localhost
     depends_on:
       db:
         condition: service_healthy
