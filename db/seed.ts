@@ -19,14 +19,14 @@ async function seedDatabase() {
       })
       .returning();
 
-    const [event2] = await db
+    const [_event2] = await db
       .insert(events)
       .values({
         name: 'Bowling night',
       })
       .returning();
 
-    const [event3] = await db
+    const [_event3] = await db
       .insert(events)
       .values({
         name: 'Tabletop gaming',
@@ -41,7 +41,7 @@ async function seedDatabase() {
       })
       .returning();
 
-    const [date2] = await db
+    const [_date2] = await db
       .insert(eventDates)
       .values({
         eventId: event1.id,
@@ -49,7 +49,7 @@ async function seedDatabase() {
       })
       .returning();
 
-    const [date3] = await db
+    const [_date3] = await db
       .insert(eventDates)
       .values({
         eventId: event1.id,
