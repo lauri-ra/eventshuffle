@@ -17,6 +17,7 @@
     "npm:@types/node@*": "24.2.0",
     "npm:@types/pg@^8.15.5": "8.15.5",
     "npm:dotenv@*": "17.2.3",
+    "npm:drizzle-kit@*": "0.31.5_esbuild@0.25.11",
     "npm:drizzle-kit@~0.31.5": "0.31.5_esbuild@0.25.11",
     "npm:drizzle-orm@~0.44.6": "0.44.6_@types+pg@8.15.5_pg@8.16.3",
     "npm:pg@^8.16.3": "8.16.3",
