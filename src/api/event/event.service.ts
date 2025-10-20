@@ -213,7 +213,7 @@ export async function getEventResults(eventId: number) {
     }
     const event = eventResult[0];
 
-    // 2. Get all possilbe dates for the event.
+    // Get all possible dates for the event.
     const datesForEvent = await tx
       .select({ id: eventDates.id, date: eventDates.date })
       .from(eventDates)
@@ -226,14 +226,14 @@ export async function getEventResults(eventId: number) {
     // Date ids for possible dates
     const dateIds = datesForEvent.map((d) => d.id);
 
-    // Get all votes for the possible dates of the event.
+    // Get all votes for the available dates of the event.
     const allVotes = await tx
       .select({
         eventDateId: eventVotes.eventDateId,
         personName: eventVotes.personName,
       })
       .from(eventVotes)
-      .where(inArray(eventVotes.eventDateId, dateIds)); // gets
+      .where(inArray(eventVotes.eventDateId, dateIds));
 
     // Process the results. Start by collecting person names into a set.
     const allParticipants = [...new Set(allVotes.map((v) => v.personName))];
@@ -248,7 +248,7 @@ export async function getEventResults(eventId: number) {
       };
     }
 
-    // Next go through the votes and group them by event date id.
+    // Next, go through the votes and group them by event date id.
     const votesByDate = allVotes.reduce<Record<number, string[]>>(
       (acc, vote) => {
         if (!acc[vote.eventDateId]) {
